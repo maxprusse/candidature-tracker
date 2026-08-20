@@ -1,11 +1,13 @@
 /**
- * Application de Gestion des Candidatures - JavaScript Logic avec Synchro Cloud Dédiée en Direct
+ * Application de Gestion des Candidatures - JavaScript Logic avec Authentification Admin par Mot de Passe
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
   // --- State Variables ---
-  const STORAGE_KEY = 'candidatures_tracker_data_v11';
+  const STORAGE_KEY = 'candidatures_tracker_data_v12';
+  const PASS_STORAGE_KEY = 'candidatures_admin_password_v1';
+  const SESSION_KEY = 'candidatures_admin_session_v1';
   const CLOUD_API_URL = 'https://crudcrud.com/api/0b77ab68a3bc44beafcbd09692e84400/candidates/6a86cb9b8541be03e8f65d58';
   
   let candidates = [];
@@ -16,6 +18,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentSearchQuery = '';
   let isSyncing = false;
   let lastCloudJsonString = '';
+
+  // --- Admin Auth Elements ---
+  const loginOverlay = document.getElementById('login-overlay');
+  const loginForm = document.getElementById('login-form');
+  const loginUsernameInput = document.getElementById('login-username');
+  const loginPasswordInput = document.getElementById('login-password');
+  const loginRememberInput = document.getElementById('login-remember');
+  const loginErrorMsg = document.getElementById('login-error-msg');
+  const btnLogout = document.getElementById('btn-logout');
+  const btnChangePass = document.getElementById('btn-change-pass');
+  const changePassModal = document.getElementById('change-pass-modal');
+  const changePassForm = document.getElementById('change-pass-form');
+  const btnClosePassModal = document.getElementById('btn-close-pass-modal');
+  const btnCancelPassModal = document.getElementById('btn-cancel-pass-modal');
+  const newPassVal = document.getElementById('new-pass-val');
+  const confirmPassVal = document.getElementById('confirm-pass-val');
 
   // --- DOM Elements ---
   const tbody = document.getElementById('candidates-tbody');
@@ -32,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalDuplicateWarning = document.getElementById('modal-duplicate-warning');
   const modalDuplicateWarningText = document.getElementById('modal-duplicate-warning-text');
   const syncStatusText = document.getElementById('sync-status-text');
-  const btnShareLink = document.getElementById('btn-share-link');
 
   // KPI Elements
   const statTotal = document.getElementById('stat-total');
@@ -76,8 +93,94 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnResetDemo = document.getElementById('btn-reset-demo');
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
 
+  // --- Admin Password Management ---
+  function getAdminPassword() {
+    return localStorage.getItem(PASS_STORAGE_KEY) || 'admin123';
+  }
+
+  function isAuthenticated() {
+    return localStorage.getItem(SESSION_KEY) === 'authenticated' || sessionStorage.getItem(SESSION_KEY) === 'authenticated';
+  }
+
+  function setAuthenticated(remember = true) {
+    if (remember) {
+      localStorage.setItem(SESSION_KEY, 'authenticated');
+    } else {
+      sessionStorage.setItem(SESSION_KEY, 'authenticated');
+    }
+  }
+
+  function clearAuthentication() {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  }
+
+  function checkAuthOnLoad() {
+    if (isAuthenticated()) {
+      loginOverlay.classList.remove('active');
+    } else {
+      loginOverlay.classList.add('active');
+    }
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const user = loginUsernameInput.value.trim().toLowerCase();
+    const pass = loginPasswordInput.value;
+    const currentAdminPass = getAdminPassword();
+
+    if (user === 'admin' && pass === currentAdminPass) {
+      loginErrorMsg.style.display = 'none';
+      setAuthenticated(loginRememberInput.checked);
+      loginOverlay.classList.remove('active');
+      showToast("Connexion réussie ! Bienvenue Admin.", "success");
+      render();
+    } else {
+      loginErrorMsg.style.display = 'block';
+    }
+  }
+
+  function handleLogout() {
+    if (confirm("Voulez-vous vraiment vous déconnecter de l'Espace Admin ?")) {
+      clearAuthentication();
+      loginOverlay.classList.add('active');
+      loginPasswordInput.value = '';
+      showToast("Vous êtes déconnecté.", "info");
+    }
+  }
+
+  function openChangePassModal() {
+    changePassForm.reset();
+    changePassModal.classList.add('active');
+  }
+
+  function closeChangePassModal() {
+    changePassModal.classList.remove('active');
+  }
+
+  function handleChangePassSubmit(e) {
+    e.preventDefault();
+    const nPass = newPassVal.value;
+    const cPass = confirmPassVal.value;
+
+    if (nPass !== cPass) {
+      alert("Les mots de passe ne correspondent pas !");
+      return;
+    }
+
+    if (nPass.length < 4) {
+      alert("Le mot de passe doit contenir au moins 4 caractères.");
+      return;
+    }
+
+    localStorage.setItem(PASS_STORAGE_KEY, nPass);
+    closeChangePassModal();
+    showToast("Mot de passe Admin mis à jour avec succès !", "success");
+  }
+
   // --- Initialization ---
   async function initApp() {
+    checkAuthOnLoad();
     loadLocalCandidates();
     setupEventListeners();
     render();
@@ -942,16 +1045,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return result;
   }
 
-  // --- Share Link Handler ---
-  function shareLink() {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      showToast("Lien copié dans le presse-papier ! Partagez-le avec votre ami.", "success");
-    } else {
-      alert("Lien à partager : " + window.location.href);
-    }
-  }
-
   // --- Theme Toggle ---
   function initTheme() {
     const savedTheme = localStorage.getItem('theme_preference') || 'dark';
@@ -1000,6 +1093,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Event Listeners Setup ---
   function setupEventListeners() {
+    // Admin Auth Listeners
+    loginForm.addEventListener('submit', handleLogin);
+    btnLogout.addEventListener('click', handleLogout);
+    btnChangePass.addEventListener('click', openChangePassModal);
+    btnClosePassModal.addEventListener('click', closeChangePassModal);
+    btnCancelPassModal.addEventListener('click', closeChangePassModal);
+    changePassForm.addEventListener('submit', handleChangePassSubmit);
+
     searchInput.addEventListener('input', (e) => {
       currentSearchQuery = e.target.value;
       render();
@@ -1082,7 +1183,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     candidateForm.addEventListener('submit', handleFormSubmit);
 
-    btnShareLink.addEventListener('click', shareLink);
     btnExportExcel.addEventListener('click', exportToExcelCSV);
     btnImportCsv.addEventListener('click', () => fileCsvInput.click());
     fileCsvInput.addEventListener('change', importFromCSV);

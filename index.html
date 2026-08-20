@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestionnaire de Candidatures - Priorités, Provenance & Remarques</title>
-  <meta name="description" content="Tableau de suivi et de priorisation des candidatures avec provenance de l'offre, remarques et synchronisation en direct.">
+  <title>Gestionnaire de Candidatures - Connexion Admin, Provenance & Remarques</title>
+  <meta name="description" content="Tableau de suivi et de priorisation des candidatures avec accès sécurisé Admin par mot de passe.">
   
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,9 +14,46 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <link rel="stylesheet" href="styles.css?v=100">
+  <link rel="stylesheet" href="styles.css?v=200">
 </head>
 <body>
+  
+  <!-- Admin Login Overlay Modal -->
+  <div id="login-overlay" class="login-overlay active">
+    <div class="login-card">
+      <div class="login-icon">
+        <i data-lucide="lock"></i>
+      </div>
+      <h2>Espace Sécurisé Admin</h2>
+      <p>Connectez-vous pour accéder au tableau et gérer les candidats.</p>
+
+      <div id="login-error-msg" class="login-error-msg">
+        Identifiant ou mot de passe incorrect.
+      </div>
+
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="login-username">Identifiant / Utilisateur</label>
+          <input type="text" id="login-username" class="form-control" value="admin" placeholder="ex: admin" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Mot de passe</label>
+          <input type="password" id="login-password" class="form-control" placeholder="Entrez le mot de passe" required autocomplete="current-password">
+        </div>
+
+        <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
+          <input type="checkbox" id="login-remember" style="width:16px; height:16px; cursor:pointer;" checked>
+          <label for="login-remember" style="cursor:pointer; margin:0; font-size:0.83rem;">Rester connecté sur cet appareil</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.8rem;">
+          <i data-lucide="log-in"></i> Se connecter
+        </button>
+      </form>
+    </div>
+  </div>
+
   <div class="app-container">
     
     <!-- Header section -->
@@ -33,7 +70,7 @@
               <span id="sync-status-text">Actif 🟢</span>
             </div>
           </div>
-          <p>Classement par offre, provenance des candidatures & remarques</p>
+          <p>Espace Admin sécurisé avec provenance, remarques & synchro cloud</p>
         </div>
       </div>
       
@@ -42,8 +79,8 @@
           <i data-lucide="sun"></i>
         </button>
 
-        <button id="btn-share-link" class="btn btn-secondary" title="Partager le lien d'accès direct">
-          <i data-lucide="share-2"></i> Copier le lien
+        <button id="btn-change-pass" class="btn btn-secondary" title="Changer le mot de passe Admin">
+          <i data-lucide="key"></i> Mot de Passe
         </button>
 
         <button id="btn-import-csv" class="btn btn-secondary">
@@ -57,6 +94,10 @@
 
         <button id="btn-add-candidate" class="btn btn-primary">
           <i data-lucide="user-plus"></i> Nouveau Candidat
+        </button>
+
+        <button id="btn-logout" class="btn btn-danger" title="Se déconnecter de l'Espace Admin">
+          <i data-lucide="log-out"></i> Déconnexion
         </button>
       </div>
     </header>
@@ -133,12 +174,10 @@
       <div class="filter-group">
         <select id="filter-offer" class="select-input">
           <option value="all">Toutes les offres</option>
-          <!-- Dynamic offer options -->
         </select>
 
         <select id="filter-source" class="select-input">
           <option value="all">Toutes les provenances</option>
-          <!-- Dynamic source options -->
         </select>
 
         <select id="filter-status" class="select-input">
@@ -302,11 +341,39 @@
     </div>
   </div>
 
+  <!-- Change Password Modal -->
+  <div id="change-pass-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2>Modifier le Mot de Passe Admin</h2>
+        <button id="btn-close-pass-modal" class="btn-close-modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <form id="change-pass-form">
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="new-pass-val">Nouveau Mot de Passe Admin</label>
+            <input type="password" id="new-pass-val" class="form-control" placeholder="Entrez le nouveau mot de passe" required>
+          </div>
+          <div class="form-group">
+            <label for="confirm-pass-val">Confirmer le Mot de Passe</label>
+            <input type="password" id="confirm-pass-val" class="form-control" placeholder="Répétez le mot de passe" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-pass-modal" class="btn btn-secondary">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container"></div>
 
   <!-- JavaScript Scripts with Cache Busters -->
-  <script src="sample-data.js?v=100"></script>
-  <script src="app.js?v=100"></script>
+  <script src="sample-data.js?v=200"></script>
+  <script src="app.js?v=200"></script>
 </body>
 </html>
