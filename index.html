@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionnaire de Candidatures - Priorités, Provenance & Remarques</title>
+  <meta name="description" content="Tableau de suivi et de priorisation des candidatures avec provenance de l'offre, remarques et synchronisation en direct.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <link rel="stylesheet" href="styles.css?v=100">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Header section -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon">
+          <i data-lucide="briefcase"></i>
+        </div>
+        <div class="brand-text">
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <h1>Suivi & Priorités Candidats</h1>
+            <div class="sync-status-pill" title="Vos données sont sécurisées et synchronisées !">
+              <span class="sync-dot"></span>
+              <span id="sync-status-text">Actif 🟢</span>
+            </div>
+          </div>
+          <p>Classement par offre, provenance des candidatures & remarques</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button id="btn-theme-toggle" class="btn btn-secondary btn-icon-only" title="Changer le thème">
+          <i data-lucide="sun"></i>
+        </button>
+
+        <button id="btn-share-link" class="btn btn-secondary" title="Partager le lien d'accès direct">
+          <i data-lucide="share-2"></i> Copier le lien
+        </button>
+
+        <button id="btn-import-csv" class="btn btn-secondary">
+          <i data-lucide="upload"></i> Importer CSV
+        </button>
+        <input type="file" id="file-csv-input" accept=".csv" style="display: none;">
+
+        <button id="btn-export-excel" class="btn btn-success">
+          <i data-lucide="file-spreadsheet"></i> Exporter Excel (.csv)
+        </button>
+
+        <button id="btn-add-candidate" class="btn btn-primary">
+          <i data-lucide="user-plus"></i> Nouveau Candidat
+        </button>
+      </div>
+    </header>
+
+    <!-- Multi-Application Alert Banner -->
+    <div id="multi-app-banner" class="alert-banner" style="display: none;">
+      <i data-lucide="alert-triangle"></i>
+      <div class="alert-banner-content">
+        <div id="multi-app-banner-title"><strong>Attention : Candidats ayant postulé à plusieurs offres !</strong></div>
+        <div id="multi-app-banner-list"></div>
+      </div>
+    </div>
+
+    <!-- KPI Dashboard Cards -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Total Candidats</div>
+          <div class="stat-value" id="stat-total">0</div>
+        </div>
+        <div class="stat-icon-bg" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+          <i data-lucide="users"></i>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Candidats Priorité N°1</div>
+          <div class="stat-value" id="stat-p1" style="color: #f59e0b;">0</div>
+        </div>
+        <div class="stat-icon-bg" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+          <i data-lucide="trophy"></i>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Multi-Offres (Alerte)</div>
+          <div class="stat-value" id="stat-multi-app" style="color: #eab308;">0</div>
+        </div>
+        <div class="stat-icon-bg" style="background: rgba(234, 179, 8, 0.15); color: #eab308;">
+          <i data-lucide="layers"></i>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">En Entretien</div>
+          <div class="stat-value" id="stat-entretien">0</div>
+        </div>
+        <div class="stat-icon-bg" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">
+          <i data-lucide="calendar"></i>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Candidats Retenus</div>
+          <div class="stat-value" id="stat-retenu">0</div>
+        </div>
+        <div class="stat-icon-bg" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+          <i data-lucide="check-circle-2"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toolbar: Search, Filters & Sorting -->
+    <section class="toolbar">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="search-input" class="search-input" placeholder="Rechercher par nom, prénom, intitulé, référence, transmis par, notes...">
+      </div>
+
+      <div class="filter-group">
+        <select id="filter-offer" class="select-input">
+          <option value="all">Toutes les offres</option>
+          <!-- Dynamic offer options -->
+        </select>
+
+        <select id="filter-source" class="select-input">
+          <option value="all">Toutes les provenances</option>
+          <!-- Dynamic source options -->
+        </select>
+
+        <select id="filter-status" class="select-input">
+          <option value="all">Tous les statuts</option>
+          <option value="multi-only">⚠️ Multi-Offres uniquement</option>
+          <option value="nouveau">Nouveau</option>
+          <option value="en_cours">En cours d'examen</option>
+          <option value="entretien">Entretien planifié</option>
+          <option value="retenu">Retenu / Offre acceptée</option>
+          <option value="refuse">Refusé</option>
+        </select>
+
+        <select id="sort-by" class="select-input">
+          <option value="offer-priority">⭐ Par Offre & Priorité (1, 2, 3...)</option>
+          <option value="priority-asc">Priorité seule (1 → N)</option>
+          <option value="recent">Plus récent</option>
+          <option value="nom-asc">Nom (A-Z)</option>
+          <option value="intitule-asc">Intitulé (A-Z)</option>
+        </select>
+
+        <button id="btn-reset-demo" class="btn btn-secondary" title="Réinitialiser les données de démo">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Candidates Table -->
+    <section class="table-card">
+      <div class="table-wrapper">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th data-sort="priority" style="width: 120px;">Priorité</th>
+              <th data-sort="nom">Candidat</th>
+              <th data-sort="intitule">Intitulé du poste</th>
+              <th data-sort="reference">Référence</th>
+              <th data-sort="transmisPar">Transmis par / Origine</th>
+              <th data-sort="notes">Notes / Remarques</th>
+              <th data-sort="lieu">Lieu</th>
+              <th data-sort="statut">Statut</th>
+              <th data-sort="date">Date</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="candidates-tbody">
+            <!-- Dynamic rows will be rendered here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="empty-state" class="empty-state" style="display: none;">
+        <i data-lucide="user-x"></i>
+        <h3>Aucune candidature trouvée</h3>
+        <p>Essayez de modifier votre recherche ou ajoutez un nouveau candidat.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal Dialog for Add/Edit Candidate -->
+  <div id="candidate-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 id="modal-title">Nouveau Candidat</h2>
+        <button id="btn-close-modal" class="btn-close-modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <form id="candidate-form">
+        <div class="modal-body">
+          <input type="hidden" id="candidate-id">
+
+          <!-- Dynamic Live Warning Banner if candidate applied elsewhere -->
+          <div id="modal-duplicate-warning" class="modal-alert" style="display: none;">
+            <i data-lucide="alert-triangle"></i>
+            <span id="modal-duplicate-warning-text"></span>
+          </div>
+
+          <div class="form-grid">
+            
+            <div class="form-group">
+              <label for="field-nom">Nom <span class="required">*</span></label>
+              <input type="text" id="field-nom" class="form-control" placeholder="ex: Dupont" required>
+            </div>
+
+            <div class="form-group">
+              <label for="field-prenom">Prénom <span class="required">*</span></label>
+              <input type="text" id="field-prenom" class="form-control" placeholder="ex: Jean" required>
+            </div>
+
+            <div class="form-group">
+              <label for="field-reference">Référence de l'offre <span class="required">*</span></label>
+              <input type="text" id="field-reference" class="form-control" list="datalist-reference" placeholder="ex: REF-2026-DEV01" required>
+              <datalist id="datalist-reference"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="field-priorite">Priorité / Rang pour cette offre <span class="required">*</span></label>
+              <input type="number" id="field-priorite" class="form-control" min="1" max="99" value="1" placeholder="1 = Premier choix" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="field-intitule">Intitulé du poste <span class="required">*</span> (Sélectionnez ou tapez)</label>
+              <input type="text" id="field-intitule" class="form-control" list="datalist-intitule" placeholder="Choisissez un poste existant ou tapez un nouveau..." required>
+              <datalist id="datalist-intitule"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="field-transmis-par">Transmis par / Origine <span style="color:var(--text-muted); font-size:0.75rem;">(Optionnel)</span></label>
+              <input type="text" id="field-transmis-par" class="form-control" list="datalist-transmis-par" placeholder="ex: Jean-Marc, Cabinet RH, LinkedIn...">
+              <datalist id="datalist-transmis-par"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="field-lieu">Lieu / Ville <span style="color:var(--text-muted); font-size:0.75rem;">(Optionnel)</span></label>
+              <input type="text" id="field-lieu" class="form-control" placeholder="ex: Paris (75) / Remote (facultatif)">
+            </div>
+
+            <div class="form-group">
+              <label for="field-statut">Statut de la candidature</label>
+              <select id="field-statut" class="form-control">
+                <option value="nouveau">Nouveau</option>
+                <option value="en_cours">En cours d'examen</option>
+                <option value="entretien">Entretien planifié</option>
+                <option value="retenu">Retenu / Accepté</option>
+                <option value="refuse">Refusé</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="field-email">Adresse Email</label>
+              <input type="email" id="field-email" class="form-control" placeholder="jean.dupont@example.com">
+            </div>
+
+            <div class="form-group">
+              <label for="field-telephone">Numéro de Téléphone</label>
+              <input type="tel" id="field-telephone" class="form-control" placeholder="06 12 34 56 78">
+            </div>
+
+            <div class="form-group">
+              <label for="field-date">Date de candidature</label>
+              <input type="date" id="field-date" class="form-control">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="field-notes">Notes & Remarques</label>
+              <textarea id="field-notes" class="form-control" placeholder="Remarques sur le profil, impressions lors des entretiens..."></textarea>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-modal" class="btn btn-secondary">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i> Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- JavaScript Scripts with Cache Busters -->
+  <script src="sample-data.js?v=100"></script>
+  <script src="app.js?v=100"></script>
+</body>
+</html>

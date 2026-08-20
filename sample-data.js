@@ -1,0 +1,62 @@
+window.INITIAL_CANDIDATES = [
+  {
+    id: "cand-test-001",
+    nom: "Bernard",
+    prenom: "Julien",
+    lieu: "Saint-Denis (974)",
+    intitule: "Responsable Logistique & Supply Chain",
+    reference: "REF-2026-LOG01",
+    transmisPar: "Marc de la Compta",
+    priorite: 1,
+    statut: "entretien",
+    dateCandidature: "2026-08-20",
+    email: "julien.bernard@example.com",
+    telephone: "06 92 12 34 56",
+    notes: "Très bon profil ! Recommandé chaudement par Marc. Disponible immédiatement."
+  },
+  {
+    id: "cand-1",
+    nom: "Dupont",
+    prenom: "Sophie",
+    lieu: "Paris (75)",
+    intitule: "Développeur Full Stack React",
+    reference: "REF-2026-DEV01",
+    transmisPar: "Jean-Marc (Cooptation)",
+    priorite: 1,
+    statut: "entretien",
+    dateCandidature: "2026-08-10",
+    email: "sophie.dupont@example.com",
+    telephone: "06 12 34 56 78",
+    notes: "Top candidate ! 5 ans d'expérience sur React/Node."
+  },
+  {
+    id: "cand-1-multi",
+    nom: "Dupont",
+    prenom: "Sophie",
+    lieu: "Paris (75)",
+    intitule: "UX/UI Designer Senior",
+    reference: "REF-2026-DES02",
+    transmisPar: "LinkedIn / Spontané",
+    priorite: 2,
+    statut: "nouveau",
+    dateCandidature: "2026-08-12",
+    email: "sophie.dupont@example.com",
+    telephone: "06 12 34 56 78",
+    notes: "A aussi postulé sur l'offre Développeur React !"
+  },
+  {
+    id: "cand-2",
+    nom: "Martin",
+    prenom: "Lucas",
+    lieu: "Lyon (69)",
+    intitule: "Chef de Projet Digital",
+    reference: "REF-2026-CPD04",
+    transmisPar: "France Travail",
+    priorite: 1,
+    statut: "retenu",
+    dateCandidature: "2026-08-05",
+    email: "lucas.martin@example.com",
+    telephone: "06 98 76 54 32",
+    notes: "Proposition transmise. Attente de signature."
+  }
+];
