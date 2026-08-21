@@ -90,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnExportExcel = document.getElementById('btn-export-excel');
   const btnImportCsv = document.getElementById('btn-import-csv');
   const fileCsvInput = document.getElementById('file-csv-input');
-  const btnResetDemo = document.getElementById('btn-reset-demo');
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
 
   // --- Admin Password Management ---
@@ -1186,16 +1185,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btnExportExcel.addEventListener('click', exportToExcelCSV);
     btnImportCsv.addEventListener('click', () => fileCsvInput.click());
     fileCsvInput.addEventListener('change', importFromCSV);
-
-    btnResetDemo.addEventListener('click', async () => {
-      if (confirm("Réinitialiser avec les données de démonstration d'origine ?")) {
-        candidates = window.INITIAL_CANDIDATES ? [...window.INITIAL_CANDIDATES] : [];
-        saveLocalCandidates();
-        render();
-        await pushToCloud();
-        showToast("Données réinitialisées !", "info");
-      }
-    });
 
     btnThemeToggle.addEventListener('click', toggleTheme);
   }
