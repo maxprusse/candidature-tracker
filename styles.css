@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Candidate Tracker Design System - Modern Dark & Premium Glassmorphism
-   With Source / Provenance Pill, Notes Preview, and Admin Login Auth Overlay
+   Candidate Tracker Design System - Premium Harmonized Layout & Aesthetics
+   Optimal Table Column Spacing, Pill Alignment & Sleek Responsive Controls
    ========================================================================== */
 
 :root {
@@ -107,7 +107,7 @@ body {
 
 /* App Container Layout */
 .app-container {
-  max-width: 1550px;
+  max-width: 1750px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
@@ -158,19 +158,19 @@ body {
 }
 
 .brand-icon {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   background: linear-gradient(135deg, var(--primary), #a855f7);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
 }
 
 .brand-text h1 {
-  font-size: 1.6rem;
+  font-size: 1.65rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   background: linear-gradient(to right, #ffffff, #94a3b8);
@@ -215,12 +215,12 @@ body.light-theme .brand-text h1 {
 .btn-primary {
   background: linear-gradient(135deg, var(--primary), #4f46e5);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.45);
 }
 
 .btn-secondary {
@@ -288,7 +288,7 @@ body.light-theme .brand-text h1 {
 /* Dashboard Statistics Cards */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 1.25rem;
   margin-bottom: 2rem;
 }
@@ -303,25 +303,31 @@ body.light-theme .brand-text h1 {
   align-items: center;
   justify-content: space-between;
   box-shadow: var(--glass-shadow);
+  transition: var(--transition);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .stat-info .stat-value {
-  font-size: 1.75rem;
+  font-size: 1.85rem;
   font-weight: 800;
   line-height: 1.2;
 }
 
 .stat-info .stat-label {
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-secondary);
 }
 
 .stat-icon-bg {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -347,7 +353,7 @@ body.light-theme .brand-text h1 {
 .search-box {
   position: relative;
   flex: 1;
-  min-width: 260px;
+  min-width: 280px;
 }
 
 .search-box i {
@@ -394,6 +400,7 @@ body.light-theme .brand-text h1 {
   outline: none;
   cursor: pointer;
   transition: var(--transition);
+  max-width: 220px;
 }
 
 .select-input:focus {
@@ -412,32 +419,49 @@ body.light-theme .brand-text h1 {
 
 .table-wrapper {
   overflow-x: auto;
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar for Table */
+.table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+.table-wrapper::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
 }
 
 .custom-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  white-space: nowrap;
 }
 
 .custom-table th {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 1rem 1.25rem;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1.05rem 1.15rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
 }
 
 body.light-theme .custom-table th {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .custom-table td {
-  padding: 1.1rem 1.25rem;
-  font-size: 0.9rem;
+  padding: 1.05rem 1.15rem;
+  font-size: 0.88rem;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
   transition: var(--transition);
@@ -488,8 +512,8 @@ body.light-theme .offer-group-row td {
 }
 
 .avatar-circle {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, var(--primary), #a855f7);
   color: #ffffff;
@@ -498,6 +522,7 @@ body.light-theme .offer-group-row td {
   justify-content: center;
   font-weight: 700;
   font-size: 0.85rem;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
 }
 
 .job-title {
@@ -508,27 +533,47 @@ body.light-theme .offer-group-row td {
 .ref-badge {
   font-family: monospace;
   font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.25rem 0.6rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px dashed var(--border-color);
   border-radius: var(--radius-sm);
-  color: var(--text-secondary);
+  color: #a5b4fc;
 }
 
 /* Transmis Par / Source Pill Badge */
 .source-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.7rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.18));
   border: 1px solid rgba(99, 102, 241, 0.4);
   color: #c7d2fe;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+/* Suivi Par / Assignee Pill Badge */
+.assignee-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(59, 130, 246, 0.18));
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #a7f3d0;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+body.light-theme .assignee-pill {
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.5);
 }
 
 /* Notes & Remarques Cell Preview */
@@ -538,7 +583,7 @@ body.light-theme .offer-group-row td {
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-color);
-  padding: 0.35rem 0.65rem;
+  padding: 0.35rem 0.7rem;
   border-radius: var(--radius-sm);
   white-space: nowrap;
   overflow: hidden;
@@ -566,7 +611,7 @@ body.light-theme .offer-group-row td {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.35rem 0.8rem;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 700;
@@ -615,9 +660,9 @@ body.light-theme .offer-group-row td {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 32px;
+  min-width: 34px;
   height: 32px;
-  padding: 0 0.6rem;
+  padding: 0 0.65rem;
   border-radius: var(--radius-full);
   font-weight: 800;
   font-size: 0.85rem;
@@ -690,8 +735,8 @@ body.light-theme .offer-group-row td {
 }
 
 .btn-table-action {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-md);
   background: transparent;
   border: 1px solid transparent;
@@ -758,7 +803,7 @@ body.light-theme .offer-group-row td {
   border: var(--glass-border);
   border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 650px;
+  max-width: 680px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
@@ -875,9 +920,7 @@ textarea.form-control {
   background: rgba(0, 0, 0, 0.1);
 }
 
-/* ==========================================================================
-   Admin Authentication Login Modal Overlay
-   ========================================================================== */
+/* Admin Auth Overlay */
 .login-overlay {
   position: fixed;
   top: 0;
@@ -990,7 +1033,22 @@ textarea.form-control {
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* Responsive adjustments */
+/* Responsive Media Queries */
+@media (max-width: 992px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .select-input {
+    max-width: 100%;
+    flex: 1;
+  }
+}
+
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;
@@ -1007,23 +1065,5 @@ textarea.form-control {
   
   .form-group.full-width {
     grid-column: span 1;
-  }
-
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-box {
-    width: 100%;
-  }
-
-  .filter-group {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .select-input {
-    width: 100%;
   }
 }

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestionnaire de Candidatures - Connexion Admin, Provenance & Remarques</title>
-  <meta name="description" content="Tableau de suivi et de priorisation des candidatures avec accès sécurisé Admin par mot de passe.">
+  <title>Gestionnaire de Candidatures - Connexion Admin, Suivi Par, Provenance & Remarques</title>
+  <meta name="description" content="Tableau de suivi et de priorisation des candidatures avec accès sécurisé Admin et attribution de recruteur.">
   
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <link rel="stylesheet" href="styles.css?v=300">
+  <link rel="stylesheet" href="styles.css?v=500">
 </head>
 <body>
   
@@ -70,7 +70,7 @@
               <span id="sync-status-text">Actif 🟢</span>
             </div>
           </div>
-          <p>Espace Admin sécurisé avec provenance, remarques & synchro cloud</p>
+          <p>Espace Admin sécurisé avec provenance, suivi recruteur & remarques</p>
         </div>
       </div>
       
@@ -168,7 +168,7 @@
     <section class="toolbar">
       <div class="search-box">
         <i data-lucide="search"></i>
-        <input type="text" id="search-input" class="search-input" placeholder="Rechercher par nom, prénom, intitulé, référence, transmis par, notes...">
+        <input type="text" id="search-input" class="search-input" placeholder="Rechercher par nom, prénom, intitulé, provenance, suivi par, notes...">
       </div>
 
       <div class="filter-group">
@@ -178,6 +178,10 @@
 
         <select id="filter-source" class="select-input">
           <option value="all">Toutes les provenances</option>
+        </select>
+
+        <select id="filter-assignee" class="select-input">
+          <option value="all">Tous les recruteurs (Suivi par)</option>
         </select>
 
         <select id="filter-status" class="select-input">
@@ -211,6 +215,7 @@
               <th data-sort="intitule">Intitulé du poste</th>
               <th data-sort="reference">Référence</th>
               <th data-sort="transmisPar">Transmis par / Origine</th>
+              <th data-sort="suiviPar">Suivi par</th>
               <th data-sort="notes">Notes / Remarques</th>
               <th data-sort="lieu">Lieu</th>
               <th data-sort="statut">Statut</th>
@@ -286,6 +291,12 @@
               <label for="field-transmis-par">Transmis par / Origine <span style="color:var(--text-muted); font-size:0.75rem;">(Optionnel)</span></label>
               <input type="text" id="field-transmis-par" class="form-control" list="datalist-transmis-par" placeholder="ex: Jean-Marc, Cabinet RH, LinkedIn...">
               <datalist id="datalist-transmis-par"></datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="field-suivi-par">Suivi par / Recruteur <span style="color:var(--text-muted); font-size:0.75rem;">(Optionnel)</span></label>
+              <input type="text" id="field-suivi-par" class="form-control" list="datalist-suivi-par" placeholder="ex: Maxime, Sophie, RH...">
+              <datalist id="datalist-suivi-par"></datalist>
             </div>
 
             <div class="form-group">
@@ -369,7 +380,7 @@
   <div id="toast-container" class="toast-container"></div>
 
   <!-- JavaScript Scripts with Cache Busters -->
-  <script src="sample-data.js?v=300"></script>
-  <script src="app.js?v=300"></script>
+  <script src="sample-data.js?v=500"></script>
+  <script src="app.js?v=500"></script>
 </body>
 </html>

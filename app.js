@@ -1,11 +1,11 @@
 /**
- * Application de Gestion des Candidatures - JavaScript Logic avec Authentification Admin par Mot de Passe
+ * Application de Gestion des Candidatures - JavaScript Logic avec Suivi Par (placé après Transmis Par), Provenance, Remarques & Auth Admin
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
   // --- State Variables ---
-  const STORAGE_KEY = 'candidatures_tracker_data_v12';
+  const STORAGE_KEY = 'candidatures_tracker_data_v14';
   const PASS_STORAGE_KEY = 'candidatures_admin_password_v1';
   const SESSION_KEY = 'candidatures_admin_session_v1';
   const CLOUD_API_URL = 'https://crudcrud.com/api/0b77ab68a3bc44beafcbd09692e84400/candidates/6a86cb9b8541be03e8f65d58';
@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentSort = 'offer-priority';
   let currentFilterStatus = 'all';
   let currentFilterOffer = 'all';
+  let currentFilterAssignee = 'all';
   let currentFilterSource = 'all';
   let currentSearchQuery = '';
   let isSyncing = false;
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const emptyState = document.getElementById('empty-state');
   const searchInput = document.getElementById('search-input');
   const filterOfferSelect = document.getElementById('filter-offer');
+  const filterAssigneeSelect = document.getElementById('filter-assignee');
   const filterSourceSelect = document.getElementById('filter-source');
   const filterStatusSelect = document.getElementById('filter-status');
   const sortBySelect = document.getElementById('sort-by');
@@ -69,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Datalists
   const datalistIntitule = document.getElementById('datalist-intitule');
   const datalistReference = document.getElementById('datalist-reference');
+  const datalistSuiviPar = document.getElementById('datalist-suivi-par');
   const datalistTransmisPar = document.getElementById('datalist-transmis-par');
 
   // Form Fields
@@ -77,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fieldPrenom = document.getElementById('field-prenom');
   const fieldIntitule = document.getElementById('field-intitule');
   const fieldReference = document.getElementById('field-reference');
+  const fieldSuiviPar = document.getElementById('field-suivi-par');
   const fieldTransmisPar = document.getElementById('field-transmis-par');
   const fieldPriorite = document.getElementById('field-priorite');
   const fieldLieu = document.getElementById('field-lieu');
@@ -214,14 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Populate Datalists ---
   function updateModalDatalists() {
-    if (!datalistIntitule || !datalistReference || !datalistTransmisPar) return;
+    if (!datalistIntitule || !datalistReference || !datalistSuiviPar || !datalistTransmisPar) return;
 
     datalistIntitule.innerHTML = '';
     datalistReference.innerHTML = '';
+    datalistSuiviPar.innerHTML = '';
     datalistTransmisPar.innerHTML = '';
 
     const uniqueIntitules = new Set();
     const uniqueReferences = new Map();
+    const uniqueAssignees = new Set();
     const uniqueSources = new Set();
 
     candidates.forEach(c => {
@@ -230,6 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (c.reference && c.reference.trim()) {
         uniqueReferences.set(c.reference.trim().toUpperCase(), c.intitule ? c.intitule.trim() : '');
+      }
+      if (c.suiviPar && c.suiviPar.trim()) {
+        uniqueAssignees.add(c.suiviPar.trim());
       }
       if (c.transmisPar && c.transmisPar.trim()) {
         uniqueSources.add(c.transmisPar.trim());
@@ -247,6 +256,12 @@ document.addEventListener('DOMContentLoaded', () => {
       opt.value = ref;
       opt.label = intitule ? `${ref} (${intitule})` : ref;
       datalistReference.appendChild(opt);
+    });
+
+    uniqueAssignees.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      datalistSuiviPar.appendChild(opt);
     });
 
     uniqueSources.forEach(source => {
@@ -390,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return multiMap.get(keyNom) || multiMap.get(keyEmail) || null;
   }
 
-  // --- Offer & Source Filter Dropdowns Populator ---
+  // --- Offer, Source & Assignee Filter Dropdowns Populator ---
   function updateFilterOptions() {
     // 1. Offer Filter
     const previousOfferVal = filterOfferSelect.value;
@@ -419,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentFilterOffer = 'all';
     }
 
-    // 2. Source Filter
+    // 2. Source Filter (Transmis Par)
     const previousSourceVal = filterSourceSelect.value;
     filterSourceSelect.innerHTML = '<option value="all">Toutes les provenances</option>';
 
@@ -442,6 +457,31 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       filterSourceSelect.value = 'all';
       currentFilterSource = 'all';
+    }
+
+    // 3. Assignee (Suivi Par) Filter
+    const previousAssigneeVal = filterAssigneeSelect.value;
+    filterAssigneeSelect.innerHTML = '<option value="all">Tous les recruteurs (Suivi par)</option>';
+
+    const assigneesSet = new Set();
+    candidates.forEach(c => {
+      if (c.suiviPar && c.suiviPar.trim()) {
+        assigneesSet.add(c.suiviPar.trim());
+      }
+    });
+
+    assigneesSet.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = `Suivi par : ${name}`;
+      filterAssigneeSelect.appendChild(opt);
+    });
+
+    if (assigneesSet.has(previousAssigneeVal) || previousAssigneeVal === 'all') {
+      filterAssigneeSelect.value = previousAssigneeVal;
+    } else {
+      filterAssigneeSelect.value = 'all';
+      currentFilterAssignee = 'all';
     }
   }
 
@@ -488,6 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (cand.intitule && cand.intitule.toLowerCase().includes(q)) ||
         (cand.reference && cand.reference.toLowerCase().includes(q)) ||
         (cand.transmisPar && cand.transmisPar.toLowerCase().includes(q)) ||
+        (cand.suiviPar && cand.suiviPar.toLowerCase().includes(q)) ||
         (cand.lieu && cand.lieu.toLowerCase().includes(q)) ||
         (cand.notes && cand.notes.toLowerCase().includes(q));
 
@@ -500,8 +541,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const matchesOffer = currentFilterOffer === 'all' || (cand.reference && cand.reference.trim() === currentFilterOffer);
       const matchesSource = currentFilterSource === 'all' || (cand.transmisPar && cand.transmisPar.trim() === currentFilterSource);
+      const matchesAssignee = currentFilterAssignee === 'all' || (cand.suiviPar && cand.suiviPar.trim() === currentFilterAssignee);
 
-      return matchesSearch && matchesStatus && matchesOffer && matchesSource;
+      return matchesSearch && matchesStatus && matchesOffer && matchesSource && matchesAssignee;
     });
 
     // 2. Sort candidates
@@ -559,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const groupTr = document.createElement('tr');
             groupTr.className = 'offer-group-row';
             groupTr.innerHTML = `
-              <td colspan="10">
+              <td colspan="11">
                 <i data-lucide="folder" style="width:16px; height:16px; display:inline-block; vertical-align:middle; margin-right:6px; color:var(--primary);"></i>
                 OFFRE RÉF. ${escapeHTML(currentRef)} — ${escapeHTML(cand.intitule)} 
                 <span style="font-weight: normal; opacity: 0.8; margin-left:8px;">(${countForOffer} candidat${countForOffer > 1 ? 's' : ''})</span>
@@ -594,6 +636,11 @@ document.addEventListener('DOMContentLoaded', () => {
           ? `<span class="source-pill">👤 ${escapeHTML(cand.transmisPar.trim())}</span>` 
           : `<span style="color:var(--text-muted); font-size:0.8rem;">-</span>`;
 
+        // Suivi par pill badge (PLANTED JUST AFTER Transmis Par)
+        const suiviTag = (cand.suiviPar && cand.suiviPar.trim()) 
+          ? `<span class="assignee-pill">💼 ${escapeHTML(cand.suiviPar.trim())}</span>` 
+          : `<span style="color:var(--text-muted); font-size:0.8rem;">-</span>`;
+
         // Notes & Remarques Preview cell
         const notesText = (cand.notes && cand.notes.trim()) ? cand.notes.trim() : '';
         const notesTag = notesText 
@@ -626,6 +673,9 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
           <td>
             ${transmisTag}
+          </td>
+          <td>
+            ${suiviTag}
           </td>
           <td>
             ${notesTag}
@@ -792,6 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fieldIntitule.value = candidate.intitule || '';
       fieldReference.value = candidate.reference || '';
       fieldTransmisPar.value = candidate.transmisPar || '';
+      fieldSuiviPar.value = candidate.suiviPar || '';
       fieldPriorite.value = candidate.priorite || 1;
       fieldLieu.value = candidate.lieu || '';
       fieldStatut.value = candidate.statut || 'nouveau';
@@ -827,6 +878,7 @@ document.addEventListener('DOMContentLoaded', () => {
       intitule: fieldIntitule.value.trim(),
       reference: fieldReference.value.trim().toUpperCase(),
       transmisPar: fieldTransmisPar.value.trim(),
+      suiviPar: fieldSuiviPar.value.trim(),
       priorite: parseInt(fieldPriorite.value, 10) || 1,
       lieu: fieldLieu.value.trim() || '-',
       statut: fieldStatut.value,
@@ -904,6 +956,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "Référence de l'offre",
       "Intitulé du poste",
       "Transmis par / Origine",
+      "Suivi par / Recruteur",
       "Notes & Remarques",
       "Alerte Multi-Offres",
       "Lieu",
@@ -924,6 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
         escapeCsvField(c.reference),
         escapeCsvField(c.intitule),
         escapeCsvField(c.transmisPar || '-'),
+        escapeCsvField(c.suiviPar || '-'),
         escapeCsvField(c.notes || '-'),
         escapeCsvField(multiText),
         escapeCsvField(c.lieu || '-'),
@@ -998,12 +1052,13 @@ document.addEventListener('DOMContentLoaded', () => {
           reference: cols[3] || '',
           intitule: cols[4] || '',
           transmisPar: cols[5] || '',
-          notes: cols[6] || '',
-          lieu: cols[8] || cols[7] || '-',
-          statut: cols[9] || 'nouveau',
-          dateCandidature: cols[10] || new Date().toISOString().split('T')[0],
-          email: cols[11] || '',
-          telephone: cols[12] || ''
+          suiviPar: cols[6] || '',
+          notes: cols[7] || '',
+          lieu: cols[9] || cols[8] || '-',
+          statut: cols[10] || 'nouveau',
+          dateCandidature: cols[11] || new Date().toISOString().split('T')[0],
+          email: cols[12] || '',
+          telephone: cols[13] || ''
         });
       }
     }
@@ -1112,6 +1167,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filterSourceSelect.addEventListener('change', (e) => {
       currentFilterSource = e.target.value;
+      render();
+    });
+
+    filterAssigneeSelect.addEventListener('change', (e) => {
+      currentFilterAssignee = e.target.value;
       render();
     });
 
