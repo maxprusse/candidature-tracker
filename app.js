@@ -1,11 +1,11 @@
 /**
- * Application de Gestion des Candidatures - Vue Synthétique Ultra-Compacte & Responsive
+ * Application de Gestion des Candidatures - CSV Import Intelligent & Flexible
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
   // --- State Variables ---
-  const STORAGE_KEY = 'candidatures_tracker_data_v16';
+  const STORAGE_KEY = 'candidatures_tracker_data_v17';
   const PASS_STORAGE_KEY = 'candidatures_admin_password_v1';
   const SESSION_KEY = 'candidatures_admin_session_v1';
   const CLOUD_API_URL = 'https://crudcrud.com/api/0b77ab68a3bc44beafcbd09692e84400/candidates/6a86cb9b8541be03e8f65d58';
@@ -810,6 +810,132 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- SMART & BULLETPROOF CSV PARSER ---
+  function detectSeparator(text) {
+    const firstLine = text.split(/\r\n|\n/)[0] || '';
+    const semicolons = (firstLine.match(/;/g) || []).length;
+    const commas = (firstLine.match(/,/g) || []).length;
+    const tabs = (firstLine.match(/\t/g) || []).length;
+    if (tabs > semicolons && tabs > commas) return '\t';
+    if (semicolons >= commas) return ';';
+    return ',';
+  }
+
+  function parseCSVRow(row, sep) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < row.length; i++) {
+      const char = row[i];
+      if (char === '"') {
+        if (inQuotes && row[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === sep && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  function parseAndLoadCSV(csvText) {
+    const lines = csvText.split(/\r\n|\n/).filter(line => line.trim() !== '');
+    if (lines.length === 0) {
+      showToast("Le fichier CSV est vide.", "error");
+      return;
+    }
+
+    const sep = detectSeparator(csvText);
+    const headerCols = parseCSVRow(lines[0], sep).map(h => h.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+
+    const hasHeader = headerCols.some(h => 
+      h.includes('nom') || h.includes('prenom') || h.includes('poste') || h.includes('ref') || h.includes('prio')
+    );
+
+    let colMap = {
+      nom: -1, prenom: -1, intitule: -1, reference: -1,
+      priorite: -1, transmisPar: -1, suiviPar: -1, notes: -1,
+      lieu: -1, statut: -1, email: -1, telephone: -1, date: -1
+    };
+
+    if (hasHeader) {
+      headerCols.forEach((h, idx) => {
+        if (h.includes('prio') || h.includes('rang')) colMap.priorite = idx;
+        else if (h.includes('nom') && !h.includes('prenom')) colMap.nom = idx;
+        else if (h.includes('prenom')) colMap.prenom = idx;
+        else if (h.includes('ref') || h.includes('offre')) colMap.reference = idx;
+        else if (h.includes('poste') || h.includes('intitule') || h.includes('titre') || h.includes('job')) colMap.intitule = idx;
+        else if (h.includes('transmis') || h.includes('origine') || h.includes('source')) colMap.transmisPar = idx;
+        else if (h.includes('suivi') || h.includes('recruteur') || h.includes('assignee')) colMap.suiviPar = idx;
+        else if (h.includes('note') || h.includes('remarque') || h.includes('comment')) colMap.notes = idx;
+        else if (h.includes('lieu') || h.includes('ville') || h.includes('location')) colMap.lieu = idx;
+        else if (h.includes('statut') || h.includes('status') || h.includes('etat')) colMap.statut = idx;
+        else if (h.includes('email') || h.includes('mail')) colMap.email = idx;
+        else if (h.includes('tel') || h.includes('phone')) colMap.telephone = idx;
+        else if (h.includes('date')) colMap.date = idx;
+      });
+    }
+
+    const startIdx = hasHeader ? 1 : 0;
+    const importedCandidates = [];
+
+    for (let i = startIdx; i < lines.length; i++) {
+      const cols = parseCSVRow(lines[i], sep);
+      if (cols.length === 0 || cols.every(c => c === '')) continue;
+
+      let nomVal = colMap.nom !== -1 ? cols[colMap.nom] : (cols[1] || cols[0] || 'Inconnu');
+      let prenomVal = colMap.prenom !== -1 ? cols[colMap.prenom] : (cols[2] || cols[1] || '');
+      let refVal = colMap.reference !== -1 ? cols[colMap.reference] : (cols[3] || 'REF-GENERAL');
+      let intituleVal = colMap.intitule !== -1 ? cols[colMap.intitule] : (cols[4] || 'Candidat');
+
+      if (!nomVal && !prenomVal) continue;
+
+      importedCandidates.push({
+        id: 'imported-' + Date.now() + '-' + i,
+        priorite: colMap.priorite !== -1 ? (parseInt(cols[colMap.priorite], 10) || 1) : (parseInt(cols[0], 10) || 1),
+        nom: nomVal || 'Inconnu',
+        prenom: prenomVal || '',
+        reference: (refVal || 'REF-OFFRE').toUpperCase(),
+        intitule: intituleVal || 'Poste',
+        transmisPar: colMap.transmisPar !== -1 ? cols[colMap.transmisPar] : (cols[5] || ''),
+        suiviPar: colMap.suiviPar !== -1 ? cols[colMap.suiviPar] : (cols[6] || ''),
+        notes: colMap.notes !== -1 ? cols[colMap.notes] : (cols[7] || ''),
+        lieu: colMap.lieu !== -1 ? cols[colMap.lieu] : (cols[8] || '-'),
+        statut: colMap.statut !== -1 ? normalizeStatus(cols[colMap.statut]) : 'nouveau',
+        dateCandidature: colMap.date !== -1 ? cols[colMap.date] : new Date().toISOString().split('T')[0],
+        email: colMap.email !== -1 ? cols[colMap.email] : '',
+        telephone: colMap.telephone !== -1 ? cols[colMap.telephone] : ''
+      });
+    }
+
+    if (importedCandidates.length > 0) {
+      candidates = [...importedCandidates, ...candidates];
+      saveLocalCandidates();
+      render();
+      showToast(`${importedCandidates.length} candidat(s) importé(s) avec succès ! 🎉`, "success");
+      pushToCloud();
+    } else {
+      showToast("Impossible d'extraire des candidats valides. Vérifiez le format du fichier.", "warning");
+    }
+  }
+
+  function normalizeStatus(str) {
+    if (!str) return 'nouveau';
+    const s = str.toLowerCase().trim();
+    if (s.includes('cours') || s.includes('examen')) return 'en_cours';
+    if (s.includes('entre') || s.includes('rdv')) return 'entretien';
+    if (s.includes('ret') || s.includes('gagn') || s.includes('offre') || s.includes('accept')) return 'retenu';
+    if (s.includes('refus') || s.includes('rejet') || s.includes('non')) return 'refuse';
+    return 'nouveau';
+  }
+
   function exportToExcelCSV() {
     if (candidates.length === 0) {
       showToast("Aucune donnée à exporter.", "warning");
@@ -834,6 +960,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function escapeCsvField(field) {
     if (field === null || field === undefined) return '""';
     return `"${String(field).replace(/"/g, '""')}"`;
+  }
+
+  async function importFromCSV(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+      const text = event.target.result;
+      parseAndLoadCSV(text);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   }
 
   function setupEventListeners() {
@@ -892,6 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnExportExcel.addEventListener('click', exportToExcelCSV);
     btnImportCsv.addEventListener('click', () => fileCsvInput.click());
+    fileCsvInput.addEventListener('change', importFromCSV);
 
     btnThemeToggle.addEventListener('click', () => {
       const isLight = document.body.classList.toggle('light-theme');
