@@ -1,6 +1,5 @@
 /* ==========================================================================
-   Candidate Tracker Design System - Fully Adaptive Responsive Design
-   Desktop (Table at a glance), Tablet (Adaptive grid) & Mobile (Card View)
+   Candidate Tracker Design System - Responsive Design with Purple Group Banners
    ========================================================================== */
 
 :root {
@@ -374,7 +373,7 @@ body.light-theme .brand-text h1 {
   cursor: pointer;
 }
 
-/* Table Card Section - Desktop / Tablet */
+/* Table Card Section */
 .table-card {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
@@ -428,21 +427,21 @@ body.light-theme .custom-table th {
   background: var(--bg-card-hover);
 }
 
-/* Row grouping header for offer */
+/* PURPLE OFFER GROUP BANNER */
 .offer-group-row {
-  background: rgba(99, 102, 241, 0.12) !important;
-  border-top: 2px solid var(--primary);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25)) !important;
+  border-left: 4px solid var(--primary);
+  border-top: 1px solid rgba(99, 102, 241, 0.3);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 .offer-group-row td {
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: #c7d2fe;
-  padding: 0.55rem 0.85rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.84rem;
 }
 
-body.light-theme .offer-group-row td {
-  color: #3730a3;
+body.light-theme .offer-group-row {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12)) !important;
 }
 
 /* Candidate cell elements */
@@ -851,173 +850,57 @@ body.light-theme .assignee-pill {
 .toast.warning { border-left-color: var(--warning); }
 .toast.error { border-left-color: var(--danger); }
 
-/* ==========================================================================
-   ADVANCED RESPONSIVE DESIGN - TABLET & MOBILE ADAPTATION
-   ========================================================================== */
-
-/* 1. TABLET SCREEN ADAPTATIONS (768px - 1024px) */
+/* RESPONSIVE DESIGN */
 @media (max-width: 1024px) {
-  .app-container {
-    padding: 1rem 0.75rem;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-group {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  }
-
-  .select-input {
-    width: 100%;
-  }
+  .app-container { padding: 1rem 0.75rem; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .filter-group { width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .select-input { width: 100%; }
 }
 
-/* 2. MOBILE SMARTPHONE ADAPTATIONS (< 768px): CARDS VIEW TRANSFORM */
 @media (max-width: 768px) {
-  .app-header {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-  }
+  .app-header { flex-direction: column; align-items: stretch; text-align: center; }
+  .brand-wrapper { justify-content: center; }
+  .header-actions { justify-content: center; width: 100%; }
+  .header-actions .btn { flex: 1 1 calc(50% - 0.5rem); padding: 0.6rem 0.5rem; font-size: 0.78rem; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .stat-card { padding: 0.75rem; }
+  .stat-info .stat-value { font-size: 1.25rem; }
+  .search-box { width: 100%; }
+  .filter-group { grid-template-columns: 1fr 1fr; }
 
-  .brand-wrapper {
-    justify-content: center;
-  }
-
-  .header-actions {
-    justify-content: center;
-    width: 100%;
-  }
-
-  .header-actions .btn {
-    flex: 1 1 calc(50% - 0.5rem);
-    padding: 0.6rem 0.5rem;
-    font-size: 0.78rem;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.6rem;
-  }
-
-  .stat-card {
-    padding: 0.75rem;
-  }
-
-  .stat-info .stat-value {
-    font-size: 1.25rem;
-  }
-
-  .search-box {
-    width: 100%;
-  }
-
-  .filter-group {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  /* Transform table into elegant Mobile Cards View on phones */
-  .table-card {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    overflow: visible;
-  }
-
-  .table-wrapper {
-    overflow: visible;
-  }
-
-  .custom-table, 
-  .custom-table thead, 
-  .custom-table tbody, 
-  .custom-table th, 
-  .custom-table td, 
-  .custom-table tr {
-    display: block;
-    width: 100%;
-  }
-
-  .custom-table thead {
-    display: none; /* Hide standard header row on mobile view */
-  }
+  .table-card { background: transparent; border: none; box-shadow: none; overflow: visible; }
+  .table-wrapper { overflow: visible; }
+  .custom-table, .custom-table thead, .custom-table tbody, .custom-table th, .custom-table td, .custom-table tr { display: block; width: 100%; }
+  .custom-table thead { display: none; }
 
   .custom-table tbody tr {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    border: var(--glass-border);
-    border-radius: var(--radius-lg);
-    margin-bottom: 1rem;
-    padding: 1rem;
-    box-shadow: var(--glass-shadow);
+    background: var(--glass-bg); backdrop-filter: blur(12px); border: var(--glass-border);
+    border-radius: var(--radius-lg); margin-bottom: 1rem; padding: 1rem; box-shadow: var(--glass-shadow);
   }
 
   .custom-table tbody tr.offer-group-row {
-    background: rgba(99, 102, 241, 0.18) !important;
-    border-left: 4px solid var(--primary);
-    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3)) !important;
+    border-left: 4px solid var(--primary); margin-bottom: 0.75rem;
   }
 
   .custom-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    white-space: normal;
-    text-align: right;
+    display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); white-space: normal; text-align: right;
   }
 
-  .custom-table td:last-child {
-    border-bottom: none;
-    padding-top: 0.75rem;
-  }
+  .custom-table td:last-child { border-bottom: none; padding-top: 0.75rem; }
 
-  /* Insert data-label before cell value on mobile */
   .custom-table td::before {
-    content: attr(data-label);
-    font-weight: 700;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    float: left;
-    margin-right: 0.5rem;
-    text-align: left;
+    content: attr(data-label); font-weight: 700; font-size: 0.75rem; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.04em; float: left; margin-right: 0.5rem; text-align: left;
   }
 
-  .custom-table td[data-label="Candidat"] .candidate-name {
-    justify-content: flex-end;
-  }
-
-  .job-title {
-    max-width: 100%;
-    text-align: right;
-  }
-
-  .notes-preview {
-    max-width: 180px;
-  }
-
-  .actions-cell {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-group.full-width {
-    grid-column: span 1;
-  }
+  .custom-table td[data-label="Candidat"] .candidate-name { justify-content: flex-end; }
+  .job-title { max-width: 100%; text-align: right; }
+  .notes-preview { max-width: 180px; }
+  .actions-cell { width: 100%; justify-content: flex-end; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full-width { grid-column: span 1; }
 }

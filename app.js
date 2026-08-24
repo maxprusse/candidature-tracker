@@ -1,11 +1,11 @@
 /**
- * Application de Gestion des Candidatures - CSV Import Intelligent & Flexible
+ * Application de Gestion des Candidatures - Regroupement par Bannière Violette d'Offre Exacte
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
   // --- State Variables ---
-  const STORAGE_KEY = 'candidatures_tracker_data_v17';
+  const STORAGE_KEY = 'candidatures_tracker_data_v20';
   const PASS_STORAGE_KEY = 'candidatures_admin_password_v1';
   const SESSION_KEY = 'candidatures_admin_session_v1';
   const CLOUD_API_URL = 'https://crudcrud.com/api/0b77ab68a3bc44beafcbd09692e84400/candidates/6a86cb9b8541be03e8f65d58';
@@ -95,6 +95,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnImportCsv = document.getElementById('btn-import-csv');
   const fileCsvInput = document.getElementById('file-csv-input');
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
+
+  // --- Toast Notification Helper ---
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    let iconName = 'info';
+    if (type === 'success') iconName = 'check-circle-2';
+    if (type === 'warning') iconName = 'alert-triangle';
+    if (type === 'error') iconName = 'alert-circle';
+
+    toast.innerHTML = `<i data-lucide="${iconName}" style="width:16px; height:16px;"></i> <span>${escapeHTML(message)}</span>`;
+    container.appendChild(toast);
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 300);
+    }, 3500);
+  }
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme_preference');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-theme');
+    }
+  }
 
   // --- Admin Password Management ---
   function getAdminPassword() {
@@ -494,9 +531,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const priob = parseInt(b.priorite, 10) || 99;
 
       if (currentSort === 'offer-priority') {
-        const refA = (a.reference || '').toLowerCase();
-        const refB = (b.reference || '').toLowerCase();
-        if (refA !== refB) return refA.localeCompare(refB);
+        const keyA = `${(a.reference || '').toLowerCase()}|${(a.intitule || '').toLowerCase()}`;
+        const keyB = `${(b.reference || '').toLowerCase()}|${(b.intitule || '').toLowerCase()}`;
+        if (keyA !== keyB) return keyA.localeCompare(keyB);
         return prioA - priob;
       }
       if (currentSort === 'priority-asc') return prioA - priob;
@@ -514,24 +551,40 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       emptyState.style.display = 'none';
 
-      let lastGroupRef = null;
+      let lastGroupKey = null;
 
       filtered.forEach(cand => {
         const multiApps = getMultiApplicationsForCandidate(cand);
         const isMulti = multiApps !== null;
 
+        // Render Purple Group Banner when sorting by offer
         if (currentSort === 'offer-priority' && currentFilterOffer === 'all') {
-          const currentRef = (cand.reference || 'SANS-REF').trim();
-          if (currentRef !== lastGroupRef) {
-            lastGroupRef = currentRef;
-            const countForOffer = candidates.filter(c => (c.reference || '').trim() === currentRef).length;
+          const ref = (cand.reference || 'SANS-REF').trim().toUpperCase();
+          const title = (cand.intitule || 'Poste non spécifié').trim();
+          const currentGroupKey = `${ref}|${title}`;
+
+          if (currentGroupKey !== lastGroupKey) {
+            lastGroupKey = currentGroupKey;
+            
+            const countForOffer = candidates.filter(c => 
+              (c.reference || '').trim().toUpperCase() === ref && 
+              (c.intitule || '').trim() === title
+            ).length;
+
             const groupTr = document.createElement('tr');
             groupTr.className = 'offer-group-row';
             groupTr.innerHTML = `
-              <td colspan="11">
-                <i data-lucide="folder" style="width:14px; height:14px; display:inline-block; vertical-align:middle; margin-right:4px; color:var(--primary);"></i>
-                OFFRE RÉF. ${escapeHTML(currentRef)} — ${escapeHTML(cand.intitule)} 
-                <span style="font-weight: normal; opacity: 0.85; margin-left:6px;">(${countForOffer} candidat${countForOffer > 1 ? 's' : ''})</span>
+              <td colspan="11" data-label="Offre">
+                <div style="display:flex; align-items:center; justify-space-between; width:100%;">
+                  <div>
+                    <i data-lucide="folder" style="width:15px; height:15px; display:inline-block; vertical-align:middle; margin-right:6px; color:#a5b4fc;"></i>
+                    <strong style="letter-spacing:0.02em; color:#ffffff;">OFFRE RÉF. ${escapeHTML(ref)}</strong> 
+                    <span style="color:#c7d2fe; margin-left:8px; font-weight:600;">— ${escapeHTML(title)}</span>
+                  </div>
+                  <span style="font-size:0.75rem; background:rgba(255,255,255,0.15); padding:0.15rem 0.55rem; border-radius:999px; color:#ffffff; font-weight:700; border:1px solid rgba(255,255,255,0.2);">
+                    ${countForOffer} candidat${countForOffer > 1 ? 's' : ''}
+                  </span>
+                </div>
               </td>
             `;
             tbody.appendChild(groupTr);
@@ -752,39 +805,43 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleFormSubmit(e) {
     e.preventDefault();
 
-    const id = fieldId.value;
-    const candidateData = {
-      id: id || 'cand-' + Date.now(),
-      nom: fieldNom.value.trim(),
-      prenom: fieldPrenom.value.trim(),
-      intitule: fieldIntitule.value.trim(),
-      reference: fieldReference.value.trim().toUpperCase(),
-      transmisPar: fieldTransmisPar.value.trim(),
-      suiviPar: fieldSuiviPar.value.trim(),
-      priorite: parseInt(fieldPriorite.value, 10) || 1,
-      lieu: fieldLieu.value.trim() || '-',
-      statut: fieldStatut.value,
-      email: fieldEmail.value.trim(),
-      telephone: fieldTelephone.value.trim(),
-      dateCandidature: fieldDate.value || new Date().toISOString().split('T')[0],
-      notes: fieldNotes.value.trim()
-    };
+    try {
+      const id = fieldId.value;
+      const candidateData = {
+        id: id || 'cand-' + Date.now(),
+        nom: fieldNom.value.trim(),
+        prenom: fieldPrenom.value.trim(),
+        intitule: fieldIntitule.value.trim(),
+        reference: fieldReference.value.trim().toUpperCase(),
+        transmisPar: fieldTransmisPar.value.trim(),
+        suiviPar: fieldSuiviPar.value.trim(),
+        priorite: parseInt(fieldPriorite.value, 10) || 1,
+        lieu: fieldLieu.value.trim() || '-',
+        statut: fieldStatut.value,
+        email: fieldEmail.value.trim(),
+        telephone: fieldTelephone.value.trim(),
+        dateCandidature: fieldDate.value || new Date().toISOString().split('T')[0],
+        notes: fieldNotes.value.trim()
+      };
 
-    if (id) {
-      const index = candidates.findIndex(c => c.id === id);
-      if (index !== -1) {
-        candidates[index] = candidateData;
-        showToast("Candidature mise à jour !", "success");
+      if (id) {
+        const index = candidates.findIndex(c => c.id === id);
+        if (index !== -1) {
+          candidates[index] = candidateData;
+        }
+      } else {
+        candidates.unshift(candidateData);
       }
-    } else {
-      candidates.unshift(candidateData);
-      showToast("Nouveau candidat ajouté !", "success");
-    }
 
-    saveLocalCandidates();
-    render();
-    closeModal();
-    await pushToCloud();
+      saveLocalCandidates();
+      render();
+      closeModal();
+      showToast(id ? "Candidature mise à jour !" : "Nouveau candidat ajouté avec succès !", "success");
+      await pushToCloud();
+    } catch (err) {
+      console.error("Erreur enregistrement:", err);
+      alert("Erreur lors de l'enregistrement: " + err.message);
+    }
   }
 
   async function changePriority(id, delta) {
