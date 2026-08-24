@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Candidate Tracker Design System - Responsive Design with Purple Group Banners
+   Candidate Tracker Design System - Multi-Applicant Highlight & Responsive
    ========================================================================== */
 
 :root {
@@ -444,6 +444,38 @@ body.light-theme .offer-group-row {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12)) !important;
 }
 
+/* MULTI-APPLICANT HIGHLIGHT COLOR (GOLD / AMBER GLOWING ROW) */
+.custom-table tbody tr.is-multi-applicant {
+  background: rgba(245, 158, 11, 0.14) !important;
+  border-left: 4px solid #f59e0b !important;
+}
+
+body.light-theme .custom-table tbody tr.is-multi-applicant {
+  background: rgba(245, 158, 11, 0.18) !important;
+  border-left: 4px solid #d97706 !important;
+}
+
+.multi-app-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(234, 179, 8, 0.25));
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fef08a;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 800;
+  margin-top: 0.2rem;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+body.light-theme .multi-app-badge {
+  color: #92400e;
+  border-color: #f59e0b;
+}
+
 /* Candidate cell elements */
 .candidate-name {
   font-weight: 700;
@@ -620,22 +652,6 @@ body.light-theme .assignee-pill {
 .btn-rank-step:hover {
   background: var(--primary);
   color: #ffffff;
-}
-
-/* Multi-App Badge inside table row */
-.multi-app-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.15rem 0.4rem;
-  background: rgba(245, 158, 11, 0.18);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #fbbf24;
-  border-radius: var(--radius-sm);
-  font-size: 0.68rem;
-  font-weight: 700;
-  margin-top: 0.15rem;
-  cursor: pointer;
 }
 
 /* Action Buttons Cell */
@@ -883,6 +899,11 @@ body.light-theme .assignee-pill {
   .custom-table tbody tr.offer-group-row {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3)) !important;
     border-left: 4px solid var(--primary); margin-bottom: 0.75rem;
+  }
+
+  .custom-table tbody tr.is-multi-applicant {
+    background: rgba(245, 158, 11, 0.18) !important;
+    border-left: 4px solid #f59e0b !important;
   }
 
   .custom-table td {

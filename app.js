@@ -1,11 +1,11 @@
 /**
- * Application de Gestion des Candidatures - Regroupement par Bannière Violette d'Offre Exacte
+ * Application de Gestion des Candidatures - Nettoyeur Automatique de Référence CSV
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
   // --- State Variables ---
-  const STORAGE_KEY = 'candidatures_tracker_data_v20';
+  const STORAGE_KEY = 'candidatures_tracker_data_v23';
   const PASS_STORAGE_KEY = 'candidatures_admin_password_v1';
   const SESSION_KEY = 'candidatures_admin_session_v1';
   const CLOUD_API_URL = 'https://crudcrud.com/api/0b77ab68a3bc44beafcbd09692e84400/candidates/6a86cb9b8541be03e8f65d58';
@@ -95,6 +95,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnImportCsv = document.getElementById('btn-import-csv');
   const fileCsvInput = document.getElementById('file-csv-input');
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
+
+  // --- Reference Sanitizer Helper ---
+  function sanitizeReference(refStr) {
+    if (!refStr) return 'REF-OFFRE';
+    let clean = String(refStr)
+      .replace(/ATTENTION\s*:?\s*/gi, '')
+      .replace(/POSTUL[EÉ]\s*À\s*\d+\s*OFFRES?/gi, '')
+      .replace(/MULTI-OFFRES?/gi, '')
+      .replace(/⚠️/g, '')
+      .trim();
+    return clean ? clean.toUpperCase() : 'REF-OFFRE';
+  }
 
   // --- Toast Notification Helper ---
   function showToast(message, type = 'info') {
@@ -238,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           candidates = parsed;
+          candidates.forEach(c => { c.reference = sanitizeReference(c.reference); });
           return;
         }
       } catch (e) {
@@ -245,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     candidates = window.INITIAL_CANDIDATES || [];
+    candidates.forEach(c => { c.reference = sanitizeReference(c.reference); });
     saveLocalCandidates();
   }
 
@@ -268,7 +282,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     candidates.forEach(c => {
       if (c.intitule && c.intitule.trim()) uniqueIntitules.add(c.intitule.trim());
-      if (c.reference && c.reference.trim()) uniqueReferences.set(c.reference.trim().toUpperCase(), c.intitule ? c.intitule.trim() : '');
+      const cleanRef = sanitizeReference(c.reference);
+      if (cleanRef) uniqueReferences.set(cleanRef, c.intitule ? c.intitule.trim() : '');
       if (c.suiviPar && c.suiviPar.trim()) uniqueAssignees.add(c.suiviPar.trim());
       if (c.transmisPar && c.transmisPar.trim()) uniqueSources.add(c.transmisPar.trim());
     });
@@ -311,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = await response.json();
         if (json && Array.isArray(json.candidates) && json.candidates.length > 0) {
           const cloudCandidates = json.candidates;
+          cloudCandidates.forEach(c => { c.reference = sanitizeReference(c.reference); });
           const currentStr = JSON.stringify(cloudCandidates);
           
           if (currentStr !== lastCloudJsonString) {
@@ -367,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = await response.json();
         if (json && Array.isArray(json.candidates) && json.candidates.length > 0) {
           const cloudCandidates = json.candidates;
+          cloudCandidates.forEach(c => { c.reference = sanitizeReference(c.reference); });
           const cloudStr = JSON.stringify(cloudCandidates);
           if (cloudStr !== lastCloudJsonString) {
             lastCloudJsonString = cloudStr;
@@ -409,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const multiAppMap = new Map();
     map.forEach((list, k) => {
-      const uniqueOffers = new Set(list.map(c => (c.reference || '').trim().toUpperCase()));
+      const uniqueOffers = new Set(list.map(c => sanitizeReference(c.reference)));
       if (uniqueOffers.size >= 2) multiAppMap.set(k, list);
     });
 
@@ -431,7 +448,8 @@ document.addEventListener('DOMContentLoaded', () => {
     filterOfferSelect.innerHTML = '<option value="all">Toutes les offres</option>';
     const offersMap = new Map();
     candidates.forEach(c => {
-      if (c.reference) offersMap.set(c.reference.trim(), `${c.reference.trim()} - ${c.intitule || 'Offre'}`);
+      const cleanRef = sanitizeReference(c.reference);
+      if (cleanRef) offersMap.set(cleanRef, `${cleanRef} - ${c.intitule || 'Offre'}`);
     });
     offersMap.forEach((label, ref) => {
       const opt = document.createElement('option');
@@ -470,6 +488,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Render Function ---
   function render() {
+    // Sanitize references of all candidates
+    candidates.forEach(c => { c.reference = sanitizeReference(c.reference); });
+
     updateFilterOptions();
     updateModalDatalists();
 
@@ -488,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const matchingCand = candidates.find(c => `${c.prenom} ${c.nom.toUpperCase()}` === name);
         const offers = candidates
           .filter(c => c.nom.toLowerCase() === matchingCand.nom.toLowerCase() && c.prenom.toLowerCase() === matchingCand.prenom.toLowerCase())
-          .map(c => `Réf ${c.reference} (${c.intitule})`)
+          .map(c => `Réf ${sanitizeReference(c.reference)} (${c.intitule})`)
           .join(' + ');
 
         listHTML += `<li><strong>${escapeHTML(name)}</strong> : <em>${escapeHTML(offers)}</em></li>`;
@@ -502,11 +523,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let filtered = candidates.filter(cand => {
       const q = currentSearchQuery.toLowerCase().trim();
+      const cleanRef = sanitizeReference(cand.reference);
       const matchesSearch = !q || 
         (cand.nom && cand.nom.toLowerCase().includes(q)) ||
         (cand.prenom && cand.prenom.toLowerCase().includes(q)) ||
         (cand.intitule && cand.intitule.toLowerCase().includes(q)) ||
-        (cand.reference && cand.reference.toLowerCase().includes(q)) ||
+        (cleanRef && cleanRef.toLowerCase().includes(q)) ||
         (cand.transmisPar && cand.transmisPar.toLowerCase().includes(q)) ||
         (cand.suiviPar && cand.suiviPar.toLowerCase().includes(q)) ||
         (cand.lieu && cand.lieu.toLowerCase().includes(q)) ||
@@ -519,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
         matchesStatus = cand.statut === currentFilterStatus;
       }
 
-      const matchesOffer = currentFilterOffer === 'all' || (cand.reference && cand.reference.trim() === currentFilterOffer);
+      const matchesOffer = currentFilterOffer === 'all' || (cleanRef === currentFilterOffer);
       const matchesSource = currentFilterSource === 'all' || (cand.transmisPar && cand.transmisPar.trim() === currentFilterSource);
       const matchesAssignee = currentFilterAssignee === 'all' || (cand.suiviPar && cand.suiviPar.trim() === currentFilterAssignee);
 
@@ -531,8 +553,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const priob = parseInt(b.priorite, 10) || 99;
 
       if (currentSort === 'offer-priority') {
-        const keyA = `${(a.reference || '').toLowerCase()}|${(a.intitule || '').toLowerCase()}`;
-        const keyB = `${(b.reference || '').toLowerCase()}|${(b.intitule || '').toLowerCase()}`;
+        const keyA = `${sanitizeReference(a.reference)}|${(a.intitule || '').toLowerCase()}`;
+        const keyB = `${sanitizeReference(b.reference)}|${(b.intitule || '').toLowerCase()}`;
         if (keyA !== keyB) return keyA.localeCompare(keyB);
         return prioA - priob;
       }
@@ -554,20 +576,20 @@ document.addEventListener('DOMContentLoaded', () => {
       let lastGroupKey = null;
 
       filtered.forEach(cand => {
+        const cleanRef = sanitizeReference(cand.reference);
         const multiApps = getMultiApplicationsForCandidate(cand);
         const isMulti = multiApps !== null;
 
         // Render Purple Group Banner when sorting by offer
         if (currentSort === 'offer-priority' && currentFilterOffer === 'all') {
-          const ref = (cand.reference || 'SANS-REF').trim().toUpperCase();
           const title = (cand.intitule || 'Poste non spécifié').trim();
-          const currentGroupKey = `${ref}|${title}`;
+          const currentGroupKey = `${cleanRef}|${title}`;
 
           if (currentGroupKey !== lastGroupKey) {
             lastGroupKey = currentGroupKey;
             
             const countForOffer = candidates.filter(c => 
-              (c.reference || '').trim().toUpperCase() === ref && 
+              sanitizeReference(c.reference) === cleanRef && 
               (c.intitule || '').trim() === title
             ).length;
 
@@ -575,10 +597,10 @@ document.addEventListener('DOMContentLoaded', () => {
             groupTr.className = 'offer-group-row';
             groupTr.innerHTML = `
               <td colspan="11" data-label="Offre">
-                <div style="display:flex; align-items:center; justify-space-between; width:100%;">
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
                   <div>
                     <i data-lucide="folder" style="width:15px; height:15px; display:inline-block; vertical-align:middle; margin-right:6px; color:#a5b4fc;"></i>
-                    <strong style="letter-spacing:0.02em; color:#ffffff;">OFFRE RÉF. ${escapeHTML(ref)}</strong> 
+                    <strong style="letter-spacing:0.02em; color:#ffffff;">OFFRE RÉF. ${escapeHTML(cleanRef)}</strong> 
                     <span style="color:#c7d2fe; margin-left:8px; font-weight:600;">— ${escapeHTML(title)}</span>
                   </div>
                   <span style="font-size:0.75rem; background:rgba(255,255,255,0.15); padding:0.15rem 0.55rem; border-radius:999px; color:#ffffff; font-weight:700; border:1px solid rgba(255,255,255,0.2);">
@@ -601,9 +623,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let multiBadgeHTML = '';
         if (isMulti) {
+          const multiOfferRefs = multiApps.map(a => sanitizeReference(a.reference)).join(' + ');
           multiBadgeHTML = `
-            <div class="multi-app-badge" data-name="${escapeHTML(cand.nom)}" title="${escapeHTML(cand.prenom)} a postulé à ${multiApps.length} offres !">
-              ⚠️ ${multiApps.length} offres
+            <div class="multi-app-badge" data-name="${escapeHTML(cand.nom)}" title="Offres postulées : ${escapeHTML(multiOfferRefs)}">
+              ⚠️ ATTENTION : POSTULÉ À ${multiApps.length} OFFRES
             </div>
           `;
         }
@@ -642,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="job-title" title="${escapeHTML(cand.intitule)}">${escapeHTML(cand.intitule)}</div>
           </td>
           <td data-label="Réf.">
-            <span class="ref-badge">${escapeHTML(cand.reference)}</span>
+            <span class="ref-badge">${escapeHTML(cleanRef)}</span>
           </td>
           <td data-label="Transmis par">${transmisTag}</td>
           <td data-label="Suivi par">${suiviTag}</td>
@@ -748,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (existing.length > 0) {
-      const offersText = existing.map(e => `Réf ${e.reference} (${e.intitule})`).join(', ');
+      const offersText = existing.map(e => `Réf ${sanitizeReference(e.reference)} (${e.intitule})`).join(', ');
       modalDuplicateWarningText.textContent = `⚠️ Candidat déjà inscrit pour : ${offersText} !`;
       modalDuplicateWarning.style.display = 'flex';
       if (window.lucide) lucide.createIcons();
@@ -758,9 +781,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleReferenceChange() {
-    const refVal = fieldReference.value.trim().toUpperCase();
+    const refVal = sanitizeReference(fieldReference.value);
     if (!refVal) return;
-    const matching = candidates.find(c => (c.reference || '').trim().toUpperCase() === refVal);
+    const matching = candidates.find(c => sanitizeReference(c.reference) === refVal);
     if (matching && matching.intitule && !fieldIntitule.value.trim()) {
       fieldIntitule.value = matching.intitule;
     }
@@ -777,7 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fieldNom.value = candidate.nom || '';
       fieldPrenom.value = candidate.prenom || '';
       fieldIntitule.value = candidate.intitule || '';
-      fieldReference.value = candidate.reference || '';
+      fieldReference.value = sanitizeReference(candidate.reference) || '';
       fieldTransmisPar.value = candidate.transmisPar || '';
       fieldSuiviPar.value = candidate.suiviPar || '';
       fieldPriorite.value = candidate.priorite || 1;
@@ -812,7 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nom: fieldNom.value.trim(),
         prenom: fieldPrenom.value.trim(),
         intitule: fieldIntitule.value.trim(),
-        reference: fieldReference.value.trim().toUpperCase(),
+        reference: sanitizeReference(fieldReference.value),
         transmisPar: fieldTransmisPar.value.trim(),
         suiviPar: fieldSuiviPar.value.trim(),
         priorite: parseInt(fieldPriorite.value, 10) || 1,
@@ -949,8 +972,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let nomVal = colMap.nom !== -1 ? cols[colMap.nom] : (cols[1] || cols[0] || 'Inconnu');
       let prenomVal = colMap.prenom !== -1 ? cols[colMap.prenom] : (cols[2] || cols[1] || '');
-      let refVal = colMap.reference !== -1 ? cols[colMap.reference] : (cols[3] || 'REF-GENERAL');
+      let rawRefVal = colMap.reference !== -1 ? cols[colMap.reference] : (cols[3] || 'REF-GENERAL');
       let intituleVal = colMap.intitule !== -1 ? cols[colMap.intitule] : (cols[4] || 'Candidat');
+
+      let cleanRef = sanitizeReference(rawRefVal);
 
       if (!nomVal && !prenomVal) continue;
 
@@ -959,7 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
         priorite: colMap.priorite !== -1 ? (parseInt(cols[colMap.priorite], 10) || 1) : (parseInt(cols[0], 10) || 1),
         nom: nomVal || 'Inconnu',
         prenom: prenomVal || '',
-        reference: (refVal || 'REF-OFFRE').toUpperCase(),
+        reference: cleanRef,
         intitule: intituleVal || 'Poste',
         transmisPar: colMap.transmisPar !== -1 ? cols[colMap.transmisPar] : (cols[5] || ''),
         suiviPar: colMap.suiviPar !== -1 ? cols[colMap.suiviPar] : (cols[6] || ''),
@@ -974,6 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (importedCandidates.length > 0) {
       candidates = [...importedCandidates, ...candidates];
+      candidates.forEach(c => { c.reference = sanitizeReference(c.reference); });
       saveLocalCandidates();
       render();
       showToast(`${importedCandidates.length} candidat(s) importé(s) avec succès ! 🎉`, "success");
@@ -1000,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const headers = ["Priorité", "Nom", "Prénom", "Référence", "Poste", "Transmis par", "Suivi par", "Notes", "Multi-Offres", "Lieu", "Statut", "Date", "Email", "Téléphone"];
     const rows = candidates.map(c => [
-      escapeCsvField(c.priorite || 1), escapeCsvField(c.nom), escapeCsvField(c.prenom), escapeCsvField(c.reference), escapeCsvField(c.intitule), escapeCsvField(c.transmisPar || '-'), escapeCsvField(c.suiviPar || '-'), escapeCsvField(c.notes || '-'), escapeCsvField(getMultiApplicationsForCandidate(c) ? "Multi" : "Unique"), escapeCsvField(c.lieu || '-'), escapeCsvField(c.statut), escapeCsvField(c.dateCandidature), escapeCsvField(c.email), escapeCsvField(c.telephone)
+      escapeCsvField(c.priorite || 1), escapeCsvField(c.nom), escapeCsvField(c.prenom), escapeCsvField(sanitizeReference(c.reference)), escapeCsvField(c.intitule), escapeCsvField(c.transmisPar || '-'), escapeCsvField(c.suiviPar || '-'), escapeCsvField(c.notes || '-'), escapeCsvField(getMultiApplicationsForCandidate(c) ? "Multi" : "Unique"), escapeCsvField(c.lieu || '-'), escapeCsvField(c.statut), escapeCsvField(c.dateCandidature), escapeCsvField(c.email), escapeCsvField(c.telephone)
     ]);
     let csvContent = "\uFEFF" + headers.join(";") + "\n" + rows.map(r => r.join(";")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
