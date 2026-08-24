@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestionnaire de Candidatures - Connexion Admin, Suivi Par, Provenance & Remarques</title>
-  <meta name="description" content="Tableau de suivi et de priorisation des candidatures avec accès sécurisé Admin et attribution de recruteur.">
+  <title>Gestionnaire de Candidatures - Vue Synthétique Tout-en-Un</title>
+  <meta name="description" content="Tableau de suivi des candidatures compact et synthétique sans défilement horizontal.">
   
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <link rel="stylesheet" href="styles.css?v=500">
+  <link rel="stylesheet" href="styles.css?v=600">
 </head>
 <body>
   
@@ -63,14 +63,14 @@
           <i data-lucide="briefcase"></i>
         </div>
         <div class="brand-text">
-          <div style="display:flex; align-items:center; gap:0.6rem;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
             <h1>Suivi & Priorités Candidats</h1>
             <div class="sync-status-pill" title="Vos données sont sécurisées et synchronisées !">
               <span class="sync-dot"></span>
               <span id="sync-status-text">Actif 🟢</span>
             </div>
           </div>
-          <p>Espace Admin sécurisé avec provenance, suivi recruteur & remarques</p>
+          <p>Vue synthétique tout-en-un avec provenance, suivi & remarques</p>
         </div>
       </div>
       
@@ -125,7 +125,7 @@
 
       <div class="stat-card">
         <div class="stat-info">
-          <div class="stat-label">Candidats Priorité N°1</div>
+          <div class="stat-label">Priorité N°1</div>
           <div class="stat-value" id="stat-p1" style="color: #f59e0b;">0</div>
         </div>
         <div class="stat-icon-bg" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
@@ -135,7 +135,7 @@
 
       <div class="stat-card">
         <div class="stat-info">
-          <div class="stat-label">Multi-Offres (Alerte)</div>
+          <div class="stat-label">Multi-Offres</div>
           <div class="stat-value" id="stat-multi-app" style="color: #eab308;">0</div>
         </div>
         <div class="stat-icon-bg" style="background: rgba(234, 179, 8, 0.15); color: #eab308;">
@@ -155,7 +155,7 @@
 
       <div class="stat-card">
         <div class="stat-info">
-          <div class="stat-label">Candidats Retenus</div>
+          <div class="stat-label">Retenus</div>
           <div class="stat-value" id="stat-retenu">0</div>
         </div>
         <div class="stat-icon-bg" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
@@ -168,7 +168,7 @@
     <section class="toolbar">
       <div class="search-box">
         <i data-lucide="search"></i>
-        <input type="text" id="search-input" class="search-input" placeholder="Rechercher par nom, prénom, intitulé, provenance, suivi par, notes...">
+        <input type="text" id="search-input" class="search-input" placeholder="Rechercher nom, prénom, poste, réf, provenance, suivi, notes...">
       </div>
 
       <div class="filter-group">
@@ -186,20 +186,19 @@
 
         <select id="filter-status" class="select-input">
           <option value="all">Tous les statuts</option>
-          <option value="multi-only">⚠️ Multi-Offres uniquement</option>
+          <option value="multi-only">⚠️ Multi-Offres</option>
           <option value="nouveau">Nouveau</option>
-          <option value="en_cours">En cours d'examen</option>
-          <option value="entretien">Entretien planifié</option>
-          <option value="retenu">Retenu / Offre acceptée</option>
+          <option value="en_cours">En cours</option>
+          <option value="entretien">Entretien</option>
+          <option value="retenu">Retenu</option>
           <option value="refuse">Refusé</option>
         </select>
 
         <select id="sort-by" class="select-input">
-          <option value="offer-priority">⭐ Par Offre & Priorité (1, 2, 3...)</option>
-          <option value="priority-asc">Priorité seule (1 → N)</option>
+          <option value="offer-priority">⭐ Offre & Priorité</option>
+          <option value="priority-asc">Priorité seule</option>
           <option value="recent">Plus récent</option>
           <option value="nom-asc">Nom (A-Z)</option>
-          <option value="intitule-asc">Intitulé (A-Z)</option>
         </select>
       </div>
     </section>
@@ -210,13 +209,13 @@
         <table class="custom-table">
           <thead>
             <tr>
-              <th data-sort="priority" style="width: 120px;">Priorité</th>
+              <th data-sort="priority">Prio</th>
               <th data-sort="nom">Candidat</th>
-              <th data-sort="intitule">Intitulé du poste</th>
-              <th data-sort="reference">Référence</th>
-              <th data-sort="transmisPar">Transmis par / Origine</th>
+              <th data-sort="intitule">Poste</th>
+              <th data-sort="reference">Réf.</th>
+              <th data-sort="transmisPar">Transmis par</th>
               <th data-sort="suiviPar">Suivi par</th>
-              <th data-sort="notes">Notes / Remarques</th>
+              <th data-sort="notes">Notes</th>
               <th data-sort="lieu">Lieu</th>
               <th data-sort="statut">Statut</th>
               <th data-sort="date">Date</th>
@@ -380,7 +379,7 @@
   <div id="toast-container" class="toast-container"></div>
 
   <!-- JavaScript Scripts with Cache Busters -->
-  <script src="sample-data.js?v=500"></script>
-  <script src="app.js?v=500"></script>
+  <script src="sample-data.js?v=600"></script>
+  <script src="app.js?v=600"></script>
 </body>
 </html>
